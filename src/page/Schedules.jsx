@@ -169,7 +169,6 @@ const ScheduleCalendar = ({
   return (
     <div className="w-full h-screen md:flex md:items-center md:justify-center relative">
       <div className="md:border md:rounded-3xl flex flex-col sm:flex-col md:flex-row items-start md:h-[600px] md:border-[#000] md:border-opacity-10 overflow-hidden ">
-        {console.log("selectedTime", selectedTime)}
         <div className="py-8 md:px-7 px-5 md:bg-white bg-[#1D7AFF] w-full">
           <div>
             {!isMobile || selectedDate === null ? (
