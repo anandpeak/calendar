@@ -4,7 +4,7 @@ import { LuClock3 } from "react-icons/lu";
 import { MdOutlineLocationOn } from "react-icons/md";
 import { CiCalendar } from "react-icons/ci";
 
-const EndingPage = ({ selectedTime, selectedEndTime, diffs, fullDate }) => {
+const EndingPage = ({ selectedTime, selectedEndTime, data, fullDate }) => {
   const isMobile = window.innerWidth <= 480;
 
   return (
@@ -29,11 +29,11 @@ const EndingPage = ({ selectedTime, selectedEndTime, diffs, fullDate }) => {
             <div className="px-8">
               <div className="flex items-center gap-2 mb-2 text-[#575763]">
                 <LuClock3 />
-                <p className="text-sm">{diffs} минут </p>
+                <p className="text-sm">{data.duration} минут </p>
               </div>
               <div className="flex items-center gap-2 mb-2 text-[#575763]">
                 <MdOutlineLocationOn />
-                <p className="text-sm">Хаяг энд бичигдэнэ</p>
+                <p className="text-sm">{data.address}</p>
               </div>
               <div className="flex items-center gap-2 mb-2 text-[#575763]">
                 <CiCalendar />
@@ -42,11 +42,6 @@ const EndingPage = ({ selectedTime, selectedEndTime, diffs, fullDate }) => {
                 </p>
               </div>
             </div>
-          </div>
-          <div className="w-full flex justify-center fixed bottom-8">
-            <button className="w-[287px] bg-[#0069FF] text-[#fff] py-3 text-center rounded-xl font-semibold">
-              Ойлголоо
-            </button>
           </div>
         </div>
       ) : (
@@ -72,11 +67,11 @@ const EndingPage = ({ selectedTime, selectedEndTime, diffs, fullDate }) => {
                 <div>
                   <div className="flex items-center gap-2 mb-2 text-[#575763]">
                     <LuClock3 />
-                    <p className="text-sm">{diffs} минут </p>
+                    <p className="text-sm">{data.duration} минут </p>
                   </div>
                   <div className="flex items-center gap-2 mb-2 text-[#575763]">
                     <MdOutlineLocationOn />
-                    <p className="text-sm">Хаяг энд бичигдэнэ</p>
+                    <p className="text-sm">{data.address}</p>
                   </div>
                   <div className="flex items-center gap-2 mb-2 text-[#575763]">
                     <CiCalendar />

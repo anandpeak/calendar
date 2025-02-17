@@ -7,7 +7,7 @@ import { MdOutlineLocationOn } from "react-icons/md";
 import "dayjs/locale/mn";
 import { CiCalendar } from "react-icons/ci";
 import "dayjs/locale/en";
-import { useNavigate } from "react-router-dom";
+
 import { IoArrowBack } from "react-icons/io5";
 import axios from "axios";
 
@@ -21,13 +21,12 @@ const ScheduleCalendar = ({
   setSelectedEndTime,
   selectedDate,
   setSelectedDate,
-  setDiffs,
   setFullDate,
+  data,
+  setPage,
 }) => {
-  const navigate = useNavigate();
   const [modal, setModal] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState([]);
-  const [diff, setDiff] = useState("");
   const [load, setLoad] = useState(false);
 
   const [currentDate, setCurrentDate] = useState(dayjs());
@@ -40,67 +39,11 @@ const ScheduleCalendar = ({
   const isMobile = window.innerWidth <= 480;
 
   useEffect(() => {
-    axios
-      .get(
-        "https://metacogserver.azurewebsites.net/v1/calendar/meeting/availablity/14"
-      )
-      .then((response) => {
-        setDaysData(response.data);
-        console.log(response.data);
-        calculateTimeDifference(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (modal) {
-      document.addEventListener("click", handleClickOutside);
-    } else {
-      document.removeEventListener("click", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [modal]);
-
-  const calculateTimeDifference = (data) => {
-    for (const date in data) {
-      const times = data[date];
-
-      if (times.length > 1) {
-        for (let i = 0; i < times.length - 1; i++) {
-          const time1 = new Date(`2025-02-11T${times[i]}Z`);
-          const time2 = new Date(`2025-02-11T${times[i + 1]}Z`);
-
-          const timeDifference = (time2 - time1) / (1000 * 60);
-          setDiff(timeDifference);
-          setDiffs(timeDifference);
-        }
-      }
-    }
-  };
-
-  const handleClickOutside = (e) => {
-    if (modalOverlayRef.current && modalOverlayRef.current === e.target) {
-      setModal(false);
-    }
-  };
-
-  const changeMonth = (direction) => {
-    if (direction === "prev" && currentDate.month() === 0) {
-      setCurrentDate((prev) => prev.subtract(1, "year").month(11));
-      return;
-    }
-    setCurrentDate((prev) =>
-      direction === "next" ? prev.add(1, "month") : prev.subtract(1, "month")
-    );
-  };
+    setDaysData(data.availability);
+  }, [data]);
 
   const calculateEndTime = () => {
-    if (selectedTime && diff) {
+    if (selectedTime && data.duration) {
       const currentDate = selectedDate;
 
       const fullDateString = `${currentDate}T${selectedTime}`;
@@ -112,7 +55,7 @@ const ScheduleCalendar = ({
         return;
       }
 
-      selectedDates.setMinutes(selectedDates.getMinutes() + diff);
+      selectedDates.setMinutes(selectedDates.getMinutes() + data.duration);
       console.log("Updated Date", selectedDates);
 
       const hours = String(selectedDates.getHours()).padStart(2, "0");
@@ -126,7 +69,7 @@ const ScheduleCalendar = ({
     if (selectedTime) {
       calculateEndTime();
     }
-  }, [selectedTime, diff]);
+  }, [selectedTime, data.duration]);
 
   const fullDate = dayjs(selectedDate)
     .locale("mn")
@@ -135,12 +78,39 @@ const ScheduleCalendar = ({
 
   const selectedWeekday = dayjs(selectedDate).locale("mn").format("dddd");
 
+  const changeMonth = (direction) => {
+    if (direction === "prev" && currentDate.month() === 0) {
+      setCurrentDate((prev) => prev.subtract(1, "year").month(11));
+      return;
+    }
+    setCurrentDate((prev) =>
+      direction === "next" ? prev.add(1, "month") : prev.subtract(1, "month")
+    );
+  };
+
+  const handleClickOutside = (e) => {
+    if (modalOverlayRef.current && modalOverlayRef.current === e.target) {
+      setModal(false);
+    }
+  };
+
+  useEffect(() => {
+    if (modal) {
+      document.addEventListener("click", handleClickOutside);
+    } else {
+      document.removeEventListener("click", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [modal]);
+
   const createMeeting = () => {
     setLoad(true);
 
-    const data = {
-      calendarId: 14,
-      userId: 2,
+    const datas = {
+      calendarId: data.id,
       date: selectedDate,
       startTime: selectedTime.slice(0, 5),
       endTime: selectedEndTime,
@@ -150,10 +120,10 @@ const ScheduleCalendar = ({
     axios
       .post(
         "https://metacogserver.azurewebsites.net/v1/calendar/meeting/booking",
-        data
+        datas
       )
       .then(() => {
-        navigate("/ending");
+        setPage(3);
 
         setModal(false);
       })
@@ -173,13 +143,15 @@ const ScheduleCalendar = ({
           <div>
             {!isMobile || selectedDate === null ? (
               <div className="flex items-center gap-2 md:block mb-2.5 md:mb-0">
-                <img
-                  className="mb-2 md:w-[56px] md:h-[56px] h-[40px] w-[40px]"
-                  src="/img/burgerking.svg"
-                  alt="logo"
-                />
+                {data.companyName === "Burger king" && (
+                  <img
+                    className="mb-2 md:w-[56px] md:h-[56px] h-[40px] w-[40px]"
+                    src="/img/burgerking.svg"
+                    alt="logo"
+                  />
+                )}
                 <p className="text-[#fff] md:text-[#1A1A1A] text-base md:text-[20px] font-semibold md:mb-6 text-nowrap">
-                  Burger King ажлын ярилцлага{" "}
+                  {data.companyName} ажлын ярилцлага{" "}
                 </p>
               </div>
             ) : (
@@ -203,13 +175,13 @@ const ScheduleCalendar = ({
             <div className="flex items-center gap-2 mb-3">
               <LuClock3 className="text-[#fff] md:text-[#1A1A1A] text-opacity-80 md:text-opacity-60" />
               <p className="text-[#fff] md:text-[#1A1A1A] text-opacity-80 md:text-opacity-60 text-sm">
-                30 минут{" "}
+                {data.duration} минут{" "}
               </p>
             </div>
             <div className="flex items-center gap-2">
               <MdOutlineLocationOn className="text-[#fff] md:text-[#1A1A1A] text-opacity-80 md:text-opacity-60" />
               <p className="text-[#fff] md:text-[#1A1A1A] text-opacity-80 md:text-opacity-60 text-sm">
-                Хаяг энд бичигдэнэ
+                {data.address}
               </p>
             </div>
           </div>
@@ -393,20 +365,20 @@ const ScheduleCalendar = ({
           ref={modalOverlayRef}
           className="w-full h-screen fixed bg-[#000] bg-opacity-40 flex items-center justify-center top-0 left-0"
         >
-          <div className="bg-[#fff] rounded-xl p-6">
+          <div className="bg-[#fff] rounded-xl p-6 max-w-[90%]">
             <p className="text-[#1A1A1A] text-[20px] font-semibold mb-8">
-              Burger King ажлын ярилцлага{" "}
+              {data.companyName} ажлын ярилцлага{" "}
             </p>
             <div className="flex items-center gap-2 mb-2">
               <LuClock3 className="text-[#000] text-opacity-80" />
               <p className="text-[#000] text-opacity-80 text-sm">
-                {diff} минут{" "}
+                {data.duration} минут{" "}
               </p>
             </div>
             <div className="flex items-center gap-2 mb-2">
               <MdOutlineLocationOn className="text-[#000] text-opacity-80" />
               <p className="text-[#000] text-opacity-80 text-sm">
-                Хаяг энд бичигдэнэ
+                {data.address}
               </p>
             </div>
             <div className="flex items-center gap-2 mb-2">
@@ -429,12 +401,11 @@ const ScheduleCalendar = ({
               <button
                 onClick={() => {
                   createMeeting();
-                  // setModal(false);
-                  // navigate("/ending");
                 }}
+                disabled={load}
                 className="py-2 px-6 flex items-center gap-2 bg-[#0069FF] text-[#fff] rounded-lg "
               >
-                Баталгаажуулах
+                {load ? <div className="loader"></div> : "Баталгаажуулах"}
               </button>
             </div>
           </div>
