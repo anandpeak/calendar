@@ -47,9 +47,14 @@ const EndingPage = ({ selectedTime, selectedEndTime, data, fullDate }) => {
       ) : (
         <div className="flex items-center justify-center h-screen w-full">
           <div className="px-20 py-10 border border-[#1A1A1A] border-opacity-10 rounded-2xl">
-            <div className="flex justify-center mb-7">
-              <img src="/img/burgerking.svg" alt="logo" />
-            </div>
+            {data.companyName === "Burger king" ? (
+              <div className="flex justify-center mb-7">
+                <img src="/img/burgerking.svg" alt="logo" />
+              </div>
+            ) : (
+              ""
+            )}
+
             <div className="text-center mb-7">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <img src="/img/check.svg" alt="checked" />
