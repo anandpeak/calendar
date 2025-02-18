@@ -123,7 +123,7 @@ const Form = ({ form, setForm, setPage, data }) => {
               </div>
               <div className="mb-4 w-full">
                 <p className="text-[#1E293B] text-sm mb-1">
-                  Миний одоогийн статус{" "}
+                  Аль салбарт ажилллах боломжтой вэ ?{" "}
                   {!form.branchId && <span className="text-[#FF5F6E]">*</span>}
                 </p>
                 <select
