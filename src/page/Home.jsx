@@ -8,7 +8,7 @@ import axios from "axios";
 
 const Home = () => {
   const { url } = useParams();
-  const [page, setPage] = useState(3);
+  const [page, setPage] = useState(1);
 
   const [form, setForm] = useState({
     firstName: "",
