@@ -31,7 +31,7 @@ const Home = () => {
     const fetchCalendarData = async () => {
       try {
         const response = await axios.get(
-          `https://oneplace-hr-326159028339.asia-southeast1.run.app/v1`
+          `https://oneplace-hr-326159028339.asia-southeast1.run.app/v1/calendar/url/${url}`
         );
         setData(response.data);
         console.log(response.data);

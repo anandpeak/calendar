@@ -119,7 +119,7 @@ const ScheduleCalendar = ({
 
     axios
       .post(
-        "https://oneplace-hr-326159028339.asia-southeast1.run.app/v1",
+        "https://oneplace-hr-326159028339.asia-southeast1.run.app/v1/calendar/meeting/booking",
         datas
       )
       .then(() => {
