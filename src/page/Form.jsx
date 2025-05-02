@@ -24,7 +24,7 @@ const Form = ({ form, setForm, setPage, data }) => {
     <div className="md:flex items-center justify-center min-h-[calc(var(--vh,1vh)*100)] relative">
       {console.log(form)}
       <div className="w-full md:w-[600px] md:h-[600px] overflow-y-scroll md:rounded-xl md:border ">
-        <div className="px-5 pt-6 pb-3 bg-[#845D50] flex items-center gap-3 mb-10">
+        <div className="px-5 pt-6 pb-3 bg-[#845D50] flex items-center gap-3 mb-6">
           {data.companyName === "Burger king" && (
             <img
               className="w-[40px] h-[40px]"
@@ -33,6 +33,10 @@ const Form = ({ form, setForm, setPage, data }) => {
             />
           )}
           <p className="text-[#fff]">{data.companyName} ажлын ярилцлага </p>
+        </div>
+        <div className="mb-4 px-5">
+          <p className="text-[#1A1A1A] font-semibold mb-2">Уулзалтын хаяг</p>
+          <p className="text-[#1E293B] text-sm">{data.address}</p>
         </div>
         <div className="px-5">
           <form>
