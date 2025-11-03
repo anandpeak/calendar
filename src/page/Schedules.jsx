@@ -31,7 +31,14 @@ const ScheduleCalendar = ({
   const [selectedTimes, setSelectedTimes] = useState([]);
   const [load, setLoad] = useState(false);
 
-  const [currentDate, setCurrentDate] = useState(dayjs());
+  const [currentDate, setCurrentDate] = useState(() => {
+    // If there's an existing booking, start at that month
+    if (selectedDate) {
+      console.log("📆 Setting initial calendar month to:", selectedDate);
+      return dayjs(selectedDate);
+    }
+    return dayjs();
+  });
   const [daysData, setDaysData] = useState({});
   const daysInMonth = currentDate.daysInMonth();
   const startDay = (currentDate.startOf("month").day() + 6) % 7;
@@ -40,17 +47,42 @@ const ScheduleCalendar = ({
   const modalOverlayRef = useRef(null);
   const isMobile = window.innerWidth <= 480;
 
+  // Debug: Log received props
   useEffect(() => {
+    console.log("🎯 Schedules component mounted/updated with props:", {
+      existingBooking,
+      bookingId,
+      selectedDate,
+      selectedTime,
+      selectedEndTime
+    });
+  }, [existingBooking, bookingId, selectedDate, selectedTime, selectedEndTime]);
+
+  useEffect(() => {
+    console.log("📊 Setting daysData from availability:", data.availability);
     setDaysData(data.availability);
   }, [data]);
 
-  // Load available times for pre-selected date from existing booking
+  // Load available times for pre-selected date from existing booking or when date changes
   useEffect(() => {
-    if (existingBooking && selectedDate && daysData) {
+    console.log("🕐 Loading times for selected date:", {
+      selectedDate,
+      hasDaysData: !!daysData,
+      daysDataKeys: Object.keys(daysData || {}),
+      isExistingBooking: !!existingBooking
+    });
+
+    if (selectedDate && daysData && Object.keys(daysData).length > 0) {
       const availableTimes = daysData[selectedDate] || [];
-      setSelectedTimes(availableTimes);
+      console.log("⏰ Available times for selected date:", selectedDate, availableTimes);
+
+      if (availableTimes.length > 0) {
+        setSelectedTimes(availableTimes);
+      } else {
+        console.warn("⚠️ No available times found for date:", selectedDate);
+      }
     }
-  }, [existingBooking, selectedDate, daysData]);
+  }, [selectedDate, daysData, existingBooking]);
 
   const calculateEndTime = () => {
     if (selectedTime && data.duration) {
@@ -277,6 +309,7 @@ const ScheduleCalendar = ({
                 const availableTimes = daysData[formattedDate] || [];
                 const isAvailable = availableTimes.length > 0;
                 const isSelected = selectedDate === formattedDate;
+                const isExistingBookingDate = existingBooking && existingBooking.date === formattedDate;
 
                 return (
                   <div
@@ -287,15 +320,18 @@ const ScheduleCalendar = ({
                       }
                     }}
                     key={day}
-                    className={`px-3 py-2.5 w-[38px] md:w-[44px] h-[38px] md:h-[44px] flex items-center justify-center rounded-full cursor-pointer  ${
+                    className={`px-3 py-2.5 w-[38px] md:w-[44px] h-[38px] md:h-[44px] flex items-center justify-center rounded-full cursor-pointer relative ${
                       isAvailable
                         ? isSelected
                           ? "bg-[#0069FF] text-[#fff]"
                           : "bg-[#0069FF] text-[#0069FF] bg-opacity-[8%]"
                         : "text-[#1A1A1A] opacity-60 cursor-not-allowed"
-                    }`}
+                    } ${isExistingBookingDate && !isSelected ? "ring-2 ring-green-500" : ""}`}
                   >
                     <p className="text-center">{day}</p>
+                    {isExistingBookingDate && !isSelected && (
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></div>
+                    )}
                   </div>
                 );
               })}

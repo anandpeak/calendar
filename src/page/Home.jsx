@@ -112,9 +112,12 @@ const Home = () => {
     const checkExistingBooking = async () => {
       if (calendarToken && data) {
         try {
+          console.log("🔍 Checking for existing booking with token:", calendarToken);
           const response = await axios.get(
             `https://oneplace-hr-326159028339.asia-southeast1.run.app/v1/calendar/meeting/by-token/${calendarToken}`
           );
+
+          console.log("📅 Existing booking response:", response.data);
 
           if (response.data) {
             const booking = response.data;
@@ -122,13 +125,19 @@ const Home = () => {
             setBookingId(booking.id);
 
             // Pre-populate the booking details
+            console.log("✅ Setting existing booking:", {
+              date: booking.date,
+              startTime: booking.startTime,
+              endTime: booking.endTime
+            });
+
             setSelectedDate(booking.date);
             setSelectedTime(booking.startTime);
             setSelectedEndTime(booking.endTime);
           }
         } catch (err) {
           // No existing booking found or error - this is fine, user can create new booking
-          console.log("No existing booking found or error fetching booking:", err);
+          console.log("❌ No existing booking found or error:", err.response?.status, err.response?.data || err.message);
         }
       }
     };
