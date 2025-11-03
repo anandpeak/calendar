@@ -109,9 +109,15 @@ const Home = () => {
     }
   }, [calendarToken, data]);
 
-  // Check for existing booking
+  // Check for existing booking - THIS MUST RUN AFTER CANDIDATE DATA IS FETCHED
   useEffect(() => {
     const checkExistingBooking = async () => {
+      // Wait for candidate fetch to complete
+      if (isLoadingCandidate) {
+        console.log("⏳ Waiting for candidate data to load...");
+        return;
+      }
+
       if (!calendarToken || !data) {
         console.log("⏭️ Skipping booking check: token or data missing", { hasToken: !!calendarToken, hasData: !!data });
         return;
@@ -134,11 +140,13 @@ const Home = () => {
             return;
           }
 
+          console.log("✅ Found existing booking! Setting state...");
+
           setExistingBooking(booking);
           setBookingId(booking.id);
 
           // Pre-populate the booking details
-          console.log("✅ Setting existing booking:", {
+          console.log("📝 Pre-populating booking:", {
             id: booking.id,
             date: booking.date,
             startTime: booking.startTime,
@@ -148,8 +156,16 @@ const Home = () => {
           setSelectedDate(booking.date);
           setSelectedTime(booking.startTime);
           setSelectedEndTime(booking.endTime);
+
+          // IMPORTANT: Make sure we're on the schedule page
+          if (page !== 2) {
+            console.log("🔄 Navigating to schedule page to show existing booking");
+            setPage(2);
+          }
+
+          console.log("✨ Existing booking loaded successfully!");
         } else if (response.data === null || response.data === "") {
-          console.log("ℹ️ No existing booking found (null response)");
+          console.log("ℹ️ No existing booking found (null response) - user can create new booking");
         }
       } catch (err) {
         // No existing booking found or error - this is fine, user can create new booking
@@ -165,10 +181,15 @@ const Home = () => {
       }
     };
 
-    if (data && calendarToken) {
-      checkExistingBooking();
-    }
-  }, [calendarToken, data]);
+    // Run after a small delay to ensure candidate fetch completes
+    const timeoutId = setTimeout(() => {
+      if (data && calendarToken) {
+        checkExistingBooking();
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [calendarToken, data, isLoadingCandidate, page]);
 
   if (data === null || isLoadingCandidate) {
     return <Loading />;

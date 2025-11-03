@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Token Lookup</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #0069FF;
+            padding-bottom: 10px;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: monospace;
+        }
+        button {
+            background: #0069FF;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056d9;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #0069FF;
+        }
+        .result h3 {
+            margin-top: 0;
+            color: #0069FF;
+        }
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+        .step {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .step.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .step.fail {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0069FF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Token Lookup</h1>
+
+        <div class="input-group">
+            <label for="server">Server:</label>
+            <select id="server">
+                <option value="http://localhost:8080">Local (http://localhost:8080)</option>
+                <option value="https://oneplace-hr-326159028339.asia-southeast1.run.app" selected>Production</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="token">Calendar Token:</label>
+            <input
+                type="text"
+                id="token"
+                value="d2fc0170947c446f8edd0cce76015c2c17b39f28e8274e4daadffc100cbf4952"
+                placeholder="Enter token here"
+            >
+        </div>
+
+        <div>
+            <button onclick="testDebug()">🐛 Debug Lookup</button>
+            <button onclick="testActual()">✅ Test Actual API</button>
+            <button onclick="clearResults()">🗑️ Clear</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function testDebug() {
+            const server = document.getElementById('server').value;
+            const token = document.getElementById('token').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!token) {
+                alert('Please enter a token');
+                return;
+            }
+
+            resultDiv.innerHTML = `
+                <div class="result">
+                    <h3>🔄 Testing... <span class="loading"></span></h3>
+                    <p>Server: <code>${server}</code></p>
+                    <p>Token: <code>${token}</code></p>
+                </div>
+            `;
+
+            try {
+                const url = `${server}/v1/calendar/meeting/debug/${token}`;
+                console.log('Testing URL:', url);
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                console.log('Response:', data);
+
+                let html = `
+                    <div class="result">
+                        <h3>📊 Debug Results</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                `;
+
+                // Display each step
+                const steps = [
+                    { key: 'step1_direct_meeting', label: 'Step 1: Direct Meeting Lookup' },
+                    { key: 'step2_assessment_player', label: 'Step 2: AssessmentPlayer Lookup' },
+                    { key: 'step3_player', label: 'Step 3: Player Lookup' },
+                    { key: 'step4_talent', label: 'Step 4: Talent Lookup' },
+                    { key: 'step5_meetings', label: 'Step 5: Meeting Lookup' }
+                ];
+
+                steps.forEach(step => {
+                    if (data[step.key]) {
+                        const isSuccess = !data[step.key].includes('Not found');
+                        html += `
+                            <div class="step ${isSuccess ? 'success' : 'fail'}">
+                                <strong>${step.label}:</strong><br>
+                                ${data[step.key]}
+                            </div>
+                        `;
+                    }
+                });
+
+                if (data.error) {
+                    html += `
+                        <div class="step fail">
+                            <strong>❌ Error:</strong><br>
+                            ${data.error} (${data.error_class})
+                        </div>
+                    `;
+                }
+
+                html += '<h4>Full Response:</h4><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                html += '</div>';
+
+                resultDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="result">
+                        <h3>❌ Error</h3>
+                        <div class="step fail">
+                            ${error.message}
+                        </div>
+                        <p>Check console for details (F12)</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testActual() {
+            const server = document.getElementById('server').value;
+            const token = document.getElementById('token').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!token) {
+                alert('Please enter a token');
+                return;
+            }
+
+            resultDiv.innerHTML = `
+                <div class="result">
+                    <h3>🔄 Testing Actual API... <span class="loading"></span></h3>
+                </div>
+            `;
+
+            try {
+                const url = `${server}/v1/calendar/meeting/by-token/${token}`;
+                console.log('Testing URL:', url);
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                console.log('Response:', data);
+
+                let html = `
+                    <div class="result">
+                        <h3>✅ Actual API Results</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                `;
+
+                if (data) {
+                    html += `
+                        <div class="step success">
+                            <strong>✅ Booking Found!</strong><br>
+                            ID: ${data.id}<br>
+                            Date: ${data.date}<br>
+                            Time: ${data.startTime} - ${data.endTime}<br>
+                            Status: ${data.status}
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="step fail">
+                            <strong>❌ No Booking Found</strong><br>
+                            The API returned null or empty response
+                        </div>
+                    `;
+                }
+
+                html += '<h4>Full Response:</h4><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                html += '</div>';
+
+                resultDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="result">
+                        <h3>❌ Error</h3>
+                        <div class="step fail">
+                            ${error.message}
+                        </div>
+                        <p>Check console for details (F12)</p>
+                    </div>
+                `;
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('result').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
