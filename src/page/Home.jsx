@@ -76,6 +76,11 @@ const Home = () => {
           setPage(2);
         } catch (err) {
           console.error("Failed to fetch candidate data:", err);
+          console.error("Error response:", err.response);
+          console.error("Error status:", err.response?.status);
+          console.error("Error data:", err.response?.data);
+          console.error("Token used:", calendarToken);
+
           // Set error message based on response status
           if (err.response) {
             if (err.response.status === 404) {
@@ -83,7 +88,7 @@ const Home = () => {
             } else if (err.response.status === 400) {
               setTokenError("Invalid invitation link format. Please use the link provided in your invitation.");
             } else {
-              setTokenError("Unable to load invitation details. Please try again or contact HR.");
+              setTokenError(`Unable to load invitation details (${err.response.status}). Please try again or contact HR. Error: ${err.response?.data?.message || err.message}`);
             }
           } else {
             setTokenError("Connection error. Please check your internet connection and try again.");
