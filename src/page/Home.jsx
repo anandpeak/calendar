@@ -11,6 +11,8 @@ const Home = () => {
   const [searchParams] = useSearchParams();
   const calendarToken = searchParams.get("token");
 
+  console.log("🔗 URL Params:", { url, calendarToken, allParams: Object.fromEntries(searchParams.entries()) });
+
   const [page, setPage] = useState(1);
   const [isLoadingCandidate, setIsLoadingCandidate] = useState(false);
   const [tokenError, setTokenError] = useState(null);
@@ -110,34 +112,55 @@ const Home = () => {
   // Check for existing booking
   useEffect(() => {
     const checkExistingBooking = async () => {
-      if (calendarToken && data) {
-        try {
-          console.log("🔍 Checking for existing booking with token:", calendarToken);
-          const response = await axios.get(
-            `https://oneplace-hr-326159028339.asia-southeast1.run.app/v1/calendar/meeting/by-token/${calendarToken}`
-          );
+      if (!calendarToken || !data) {
+        console.log("⏭️ Skipping booking check: token or data missing", { hasToken: !!calendarToken, hasData: !!data });
+        return;
+      }
 
-          console.log("📅 Existing booking response:", response.data);
+      try {
+        console.log("🔍 Checking for existing booking with token:", calendarToken);
+        const response = await axios.get(
+          `https://oneplace-hr-326159028339.asia-southeast1.run.app/v1/calendar/meeting/by-token/${calendarToken}`
+        );
 
-          if (response.data) {
-            const booking = response.data;
-            setExistingBooking(booking);
-            setBookingId(booking.id);
+        console.log("📅 Existing booking response:", response.data);
 
-            // Pre-populate the booking details
-            console.log("✅ Setting existing booking:", {
-              date: booking.date,
-              startTime: booking.startTime,
-              endTime: booking.endTime
-            });
+        if (response.data && typeof response.data === 'object') {
+          const booking = response.data;
 
-            setSelectedDate(booking.date);
-            setSelectedTime(booking.startTime);
-            setSelectedEndTime(booking.endTime);
+          // Validate booking data
+          if (!booking.id || !booking.date || !booking.startTime || !booking.endTime) {
+            console.error("⚠️ Invalid booking data structure:", booking);
+            return;
           }
-        } catch (err) {
-          // No existing booking found or error - this is fine, user can create new booking
-          console.log("❌ No existing booking found or error:", err.response?.status, err.response?.data || err.message);
+
+          setExistingBooking(booking);
+          setBookingId(booking.id);
+
+          // Pre-populate the booking details
+          console.log("✅ Setting existing booking:", {
+            id: booking.id,
+            date: booking.date,
+            startTime: booking.startTime,
+            endTime: booking.endTime
+          });
+
+          setSelectedDate(booking.date);
+          setSelectedTime(booking.startTime);
+          setSelectedEndTime(booking.endTime);
+        } else if (response.data === null || response.data === "") {
+          console.log("ℹ️ No existing booking found (null response)");
+        }
+      } catch (err) {
+        // No existing booking found or error - this is fine, user can create new booking
+        if (err.response) {
+          console.log("❌ No existing booking found:", {
+            status: err.response.status,
+            data: err.response.data,
+            message: err.message
+          });
+        } else {
+          console.log("❌ Network error checking booking:", err.message);
         }
       }
     };
