@@ -26,6 +26,7 @@ const ScheduleCalendar = ({
   setPage,
   existingBooking,
   bookingId,
+  calendarToken,
 }) => {
   const [modal, setModal] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState([]);
@@ -157,7 +158,10 @@ const ScheduleCalendar = ({
       startTime: selectedTime.slice(0, 5),
       endTime: selectedEndTime,
       talent: { ...form },
+      calendarToken: calendarToken, // Include the token
     };
+
+    console.log("📤 Sending booking request:", datas);
 
     // Check if updating existing booking or creating new one
     const apiCall = bookingId
@@ -171,12 +175,13 @@ const ScheduleCalendar = ({
         );
 
     apiCall
-      .then(() => {
+      .then((response) => {
+        console.log("✅ Booking response:", response.data);
         setPage(3);
         setModal(false);
       })
       .catch((error) => {
-        console.log(error);
+        console.error("❌ Booking error:", error.response?.data || error.message);
         setLoad(false);
       })
       .finally(() => {

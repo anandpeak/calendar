@@ -185,6 +185,7 @@ const Home = () => {
           data={data}
           existingBooking={existingBooking}
           bookingId={bookingId}
+          calendarToken={calendarToken}
         />
       )}
       {page === 3 && (
