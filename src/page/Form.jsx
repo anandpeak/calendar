@@ -3,17 +3,9 @@ import { MdOutlinePhone } from "react-icons/md";
 import { IoIosArrowForward } from "react-icons/io";
 
 const Form = ({ form, setForm, setPage, data }) => {
+  // Simplified validation - only phone number required
   const isFormValid = () => {
-    const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-    return (
-      Object.values(form).every((value) => value !== "") &&
-      emailPattern.test(form.mail)
-    );
-  };
-
-  const isValidEmail = (email) => {
-    const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return regex.test(email);
+    return form.phone && form.phone.length >= 8;
   };
 
   const submit = () => {
@@ -22,9 +14,8 @@ const Form = ({ form, setForm, setPage, data }) => {
 
   return (
     <div className="md:flex items-center justify-center min-h-[calc(var(--vh,1vh)*100)] relative">
-      {console.log(form)}
-      <div className="w-full md:w-[600px] md:h-[600px] overflow-y-scroll md:rounded-xl md:border ">
-        <div className="px-5 pt-6 pb-3 bg-[#845D50] flex items-center gap-3 mb-6">
+      <div className="w-full md:w-[600px] md:rounded-xl md:border md:shadow-lg">
+        <div className="px-5 pt-6 pb-3 bg-[#845D50] flex items-center gap-3 mb-6 md:rounded-t-xl">
           {data.companyName === "Burger king" && (
             <img
               className="w-[40px] h-[40px]"
@@ -32,213 +23,53 @@ const Form = ({ form, setForm, setPage, data }) => {
               alt="logo"
             />
           )}
-          <p className="text-[#fff]">{data.companyName} ажлын ярилцлага </p>
+          <p className="text-[#fff]">{data.companyName} ажлын ярилцлага</p>
         </div>
         <div className="mb-4 px-5">
           <p className="text-[#1A1A1A] font-semibold mb-2">Уулзалтын хаяг</p>
           <p className="text-[#1E293B] text-sm">{data.address}</p>
         </div>
-        <div className="px-5">
+        <div className="px-5 pb-8">
           <form>
-            <p className="text-[#1A1A1A] font-semibold mb-8">
-              Та доорх мэдээллийг бөглөнө үү.
+            <p className="text-[#1A1A1A] font-semibold mb-4">
+              Холбогдох утасны дугаараа оруулна уу
             </p>
-            <div className="flex flex-wrap justify-between gap-2">
-              <div className="mb-4 w-full md:w-[45%]">
-                <p className="text-[#1E293B] text-sm mb-1">
-                  Нас {!form.age && <span className="text-[#FF5F6E]">*</span>}
-                </p>
+            <p className="text-[#64748B] text-sm mb-6">
+              Бид таньд ярилцлагын мэдээллийг илгээхийн тулд утасны дугаар шаардлагатай
+            </p>
+            <div className="mb-8">
+              <p className="text-[#1E293B] text-sm mb-2">
+                Холбоо барих утасны дугаар{" "}
+                {!form.phone && <span className="text-[#FF5F6E]">*</span>}
+              </p>
+              <div className="flex items-center justify-start relative">
+                <MdOutlinePhone className="absolute left-3 text-[#575763] text-xl" />
                 <input
-                  className="w-full text-[#1E293B] text-sm p-3 border border-[#CECFD3] rounded-lg"
-                  value={form.age}
-                  type="number"
+                  className="w-full text-[#1E293B] text-base py-3 pe-3 ps-10 border border-[#CECFD3] rounded-lg focus:outline-none focus:border-[#324D72] focus:ring-1 focus:ring-[#324D72]"
+                  value={form.phone}
+                  type="tel"
                   onChange={(e) => {
-                    setForm({ ...form, age: Number(e.target.value) });
+                    setForm({ ...form, phone: e.target.value });
                   }}
-                  placeholder="Насаа оруулна уу"
+                  placeholder="99001234"
+                  maxLength="8"
                 />
               </div>
-              <div className="mb-4 w-full md:w-[45%]">
-                <p className="text-[#1E293B] text-sm mb-1">
-                  Овог{" "}
-                  {!form.lastName && <span className="text-[#FF5F6E]">*</span>}
+              {form.phone && form.phone.length < 8 && (
+                <p className="text-[#FF5F6E] text-xs mt-1">
+                  Утасны дугаар 8 оронтой байх ёстой
                 </p>
-                <input
-                  className="w-full text-[#1E293B] text-sm p-3 border border-[#CECFD3] rounded-lg"
-                  value={form.lastName}
-                  type="text"
-                  onChange={(e) => {
-                    setForm({ ...form, lastName: e.target.value });
-                  }}
-                  placeholder="Энд бичнэ үү."
-                />
-              </div>
-              <div className="mb-4 w-full md:w-[45%]">
-                <p className="text-[#1E293B] text-sm mb-1">
-                  Нэр{" "}
-                  {!form.firstName && <span className="text-[#FF5F6E]">*</span>}
-                </p>
-                <input
-                  className="w-full text-[#1E293B] text-sm p-3 border border-[#CECFD3] rounded-lg"
-                  value={form.firstName}
-                  type="text"
-                  onChange={(e) => {
-                    setForm({ ...form, firstName: e.target.value });
-                  }}
-                  placeholder="Энд бичнэ үү."
-                />
-              </div>
-              <div className="mb-4 w-full md:w-[45%]">
-                <p className="text-[#1E293B] text-sm mb-1">
-                  Холбоо барих утасны дугаар{" "}
-                  {!form.phone && <span className="text-[#FF5F6E]">*</span>}
-                </p>
-                <div className="flex items-center justify-start relative">
-                  <MdOutlinePhone className="absolute left-3 text-[#575763]" />
-                  <input
-                    className="w-full text-[#1E293B] text-sm py-3 pe-3 ps-8 border border-[#CECFD3] rounded-lg"
-                    value={form.phone}
-                    type="number"
-                    onChange={(e) => {
-                      setForm({ ...form, phone: e.target.value });
-                    }}
-                    placeholder="Энд бичнэ үү."
-                  />
-                </div>
-              </div>
-              <div className="mb-4 w-full md:w-[45%]">
-                <p className="text-[#1E293B] text-sm mb-1">
-                  Мейл хаяг{" "}
-                  {(!form.mail || !isValidEmail(form.mail)) && (
-                    <span className="text-[#FF5F6E]">*</span>
-                  )}{" "}
-                </p>
-                <div className="flex items-center justify-start relative">
-                  <input
-                    className="w-full text-[#1E293B] text-sm p-3  border border-[#CECFD3] rounded-lg"
-                    value={form.mail}
-                    type="text"
-                    onChange={(e) => {
-                      setForm({ ...form, mail: e.target.value });
-                    }}
-                    placeholder="Энд бичнэ үү."
-                  />
-                </div>
-              </div>
-              <div className="mb-4 w-full">
-                <p className="text-[#1E293B] text-sm mb-1">
-                  Аль салбарт ажилллах боломжтой вэ ?{" "}
-                  {!form.branchId && <span className="text-[#FF5F6E]">*</span>}
-                </p>
-                <select
-                  onChange={(e) => {
-                    setForm({ ...form, branchId: Number(e.target.value) });
-                  }}
-                  className="w-full text-[#1E293B] text-sm p-3 border border-[#CECFD3] rounded-lg"
-                  defaultValue=""
-                >
-                  <option value="" disabled>
-                    Эндээс сонгоно уу.
-                  </option>
-
-                  {data.branches.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}: {item.address}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-4 w-full ">
-                <p className="text-[#1E293B] text-sm mb-1">
-                  Гэрийн хаяг{" "}
-                  {!form.address && <span className="text-[#FF5F6E]">*</span>}
-                </p>
-                <textarea
-                  className="w-full h-[72px] text-[#1E293B] text-sm p-3 border border-[#CECFD3] rounded-lg"
-                  value={form.address}
-                  type="text"
-                  onChange={(e) => {
-                    setForm({ ...form, address: e.target.value });
-                  }}
-                  placeholder="Энд бичнэ үү."
-                ></textarea>
-              </div>
-              <div className="mb-4 w-full">
-                <p className="text-[#1E293B] text-sm mb-1">
-                  Би бүтэн цагаар ажиллах{" "}
-                  {form.workTime === "" ? (
-                    <span className="text-[#FF5F6E]">*</span>
-                  ) : (
-                    ""
-                  )}
-                </p>
-                <div className="flex items-center gap-3 justify-between">
-                  <div
-                    onClick={() => {
-                      setForm({ ...form, workTime: "fulltime" });
-                    }}
-                    className="w-[50%] px-4 py-3 flex items-center gap-3 border border-[#E5E6E8] text-[#1E293B] rounded-lg cursor-pointer"
-                  >
-                    {form.workTime === "fulltime" ? (
-                      <div className="border-2 border-[#324D72] w-[14px] h-[14px] rounded-full flex items-center justify-center">
-                        <div className="bg-[#324d72] h-[7px] w-[7px] rounded-full"></div>
-                      </div>
-                    ) : (
-                      <div className="border-2 border-[#1A1A1A] w-[14px] h-[14px] rounded-full border-opacity-10"></div>
-                    )}
-                    Боломжтой
-                  </div>
-                  <div
-                    onClick={() => {
-                      setForm({ ...form, workTime: "parttime" });
-                    }}
-                    className="w-[50%] px-4 py-3 flex items-center gap-3 border border-[#E5E6E8] text-[#1E293B] rounded-lg cursor-pointer"
-                  >
-                    {form.workTime === "parttime" ? (
-                      <div className="border-2 border-[#324D72] w-[14px] h-[14px] rounded-full flex items-center justify-center">
-                        <div className="bg-[#324d72] h-[7px] w-[7px] rounded-full"></div>
-                      </div>
-                    ) : (
-                      <div className="border-2 border-[#1A1A1A] w-[14px] h-[14px] rounded-full border-opacity-10"></div>
-                    )}
-                    Боломжгүй
-                  </div>
-                </div>
-              </div>
-              <div className="mb-20 w-full">
-                <p className="text-[#1E293B] text-sm mb-1">
-                  Миний одоогийн статус{" "}
-                  {!form.currentStatus && (
-                    <span className="text-[#FF5F6E]">*</span>
-                  )}
-                </p>
-                <select
-                  onChange={(e) => {
-                    setForm({ ...form, currentStatus: e.target.value });
-                  }}
-                  className="w-full text-[#1E293B] text-sm p-3 border border-[#CECFD3] rounded-lg"
-                  defaultValue=""
-                  value={form.currentStatus}
-                >
-                  <option value="" disabled>
-                    Эндээс сонгоно уу.
-                  </option>
-                  <option value="university student">Оюутан</option>
-                  <option value="working">Ажилладаг</option>
-                  <option value="unemployed">Ажилгүй</option>
-                  <option value="Student">Сурагч</option>
-                </select>
-              </div>
+              )}
             </div>
           </form>
         </div>
       </div>
-      <div className="fixed -bottom-8 px-6 w-full md:w-[500px]">
+      <div className="fixed bottom-0 px-6 py-4 w-full md:w-[500px] bg-white md:bg-transparent border-t md:border-t-0">
         <button
           disabled={!isFormValid()}
           onClick={submit}
-          className={`w-full flex items-center gap-3 p-3  rounded-xl justify-center text-[#fff] mb-10
-              ${isFormValid() ? "bg-[#324d72]" : "bg-[#CECFD3] "}`}
+          className={`w-full flex items-center gap-3 p-3 rounded-xl justify-center text-[#fff] transition-all
+              ${isFormValid() ? "bg-[#324d72] hover:bg-[#2a3f5f]" : "bg-[#CECFD3] cursor-not-allowed"}`}
         >
           Үргэлжлүүлэх
           <IoIosArrowForward />

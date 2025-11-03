@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import Form from "./Form";
 import Schedule from "./Schedules";
 import EndingPage from "./EndingPage";
@@ -8,7 +8,12 @@ import axios from "axios";
 
 const Home = () => {
   const { url } = useParams();
+  const [searchParams] = useSearchParams();
+  const calendarToken = searchParams.get("token");
+
   const [page, setPage] = useState(1);
+  const [isLoadingCandidate, setIsLoadingCandidate] = useState(false);
+  const [tokenError, setTokenError] = useState(null);
 
   const [form, setForm] = useState({
     firstName: "",
@@ -43,12 +48,78 @@ const Home = () => {
     fetchCalendarData();
   }, [url]);
 
-  if (data === null) {
+  // Fetch candidate data if coming from interview invitation
+  useEffect(() => {
+    const fetchCandidateData = async () => {
+      if (calendarToken && data) {
+        setIsLoadingCandidate(true);
+        try {
+          const response = await axios.get(
+            `https://oneplace-hr-326159028339.asia-southeast1.run.app/v1/assessment/player/by-token/${calendarToken}`
+          );
+          const candidateData = response.data;
+
+          // Pre-fill form with candidate data
+          setForm({
+            firstName: candidateData.firstName || "",
+            lastName: candidateData.lastName || "",
+            age: candidateData.age || null,
+            workTime: candidateData.workTime || "",
+            address: candidateData.address || "",
+            phone: candidateData.player?.phoneNumber || candidateData.phone || "",
+            branchId: "",
+            currentStatus: candidateData.currentStatus || "",
+            mail: candidateData.player?.email || candidateData.email || "",
+          });
+
+          // Skip to schedule page (page 2)
+          setPage(2);
+        } catch (err) {
+          console.error("Failed to fetch candidate data:", err);
+          // Set error message based on response status
+          if (err.response) {
+            if (err.response.status === 404) {
+              setTokenError("Invalid invitation link. Please contact HR for a new invitation.");
+            } else if (err.response.status === 400) {
+              setTokenError("Invalid invitation link format. Please use the link provided in your invitation.");
+            } else {
+              setTokenError("Unable to load invitation details. Please try again or contact HR.");
+            }
+          } else {
+            setTokenError("Connection error. Please check your internet connection and try again.");
+          }
+          // Stay on page 1 (form page) so user can enter manually
+        } finally {
+          setIsLoadingCandidate(false);
+        }
+      }
+    };
+
+    if (data) {
+      fetchCandidateData();
+    }
+  }, [calendarToken, data]);
+
+  if (data === null || isLoadingCandidate) {
     return <Loading />;
   }
 
   return (
     <div>
+      {/* Display error message if token validation failed */}
+      {tokenError && (
+        <div style={{
+          backgroundColor: '#fee',
+          border: '1px solid #fcc',
+          borderRadius: '8px',
+          padding: '16px',
+          margin: '20px',
+          color: '#c33',
+          textAlign: 'center'
+        }}>
+          <strong>⚠️ Error:</strong> {tokenError}
+        </div>
+      )}
       {/* {console.log(data)} */}
       {page === 1 && (
         <Form form={form} setForm={setForm} setPage={setPage} data={data} />
