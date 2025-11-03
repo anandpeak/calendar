@@ -24,6 +24,8 @@ const ScheduleCalendar = ({
   setFullDate,
   data,
   setPage,
+  existingBooking,
+  bookingId,
 }) => {
   const [modal, setModal] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState([]);
@@ -41,6 +43,14 @@ const ScheduleCalendar = ({
   useEffect(() => {
     setDaysData(data.availability);
   }, [data]);
+
+  // Load available times for pre-selected date from existing booking
+  useEffect(() => {
+    if (existingBooking && selectedDate && daysData) {
+      const availableTimes = daysData[selectedDate] || [];
+      setSelectedTimes(availableTimes);
+    }
+  }, [existingBooking, selectedDate, daysData]);
 
   const calculateEndTime = () => {
     if (selectedTime && data.duration) {
@@ -117,14 +127,20 @@ const ScheduleCalendar = ({
       talent: { ...form },
     };
 
-    axios
-      .post(
-        "https://oneplace-hr-326159028339.asia-southeast1.run.app/v1/calendar/meeting/booking",
-        datas
-      )
+    // Check if updating existing booking or creating new one
+    const apiCall = bookingId
+      ? axios.put(
+          `https://oneplace-hr-326159028339.asia-southeast1.run.app/v1/calendar/meeting/${bookingId}`,
+          datas
+        )
+      : axios.post(
+          "https://oneplace-hr-326159028339.asia-southeast1.run.app/v1/calendar/meeting/booking",
+          datas
+        );
+
+    apiCall
       .then(() => {
         setPage(3);
-
         setModal(false);
       })
       .catch((error) => {
@@ -138,7 +154,19 @@ const ScheduleCalendar = ({
 
   return (
     <div className="w-full h-screen md:flex md:items-center md:justify-center relative">
-      <div className="md:border md:rounded-3xl flex flex-col sm:flex-col md:flex-row items-start md:h-[600px] md:border-[#000] md:border-opacity-10 overflow-hidden ">
+      {existingBooking && (
+        <div className="fixed top-0 left-0 right-0 bg-blue-100 border-b-2 border-blue-500 px-4 py-3 z-50">
+          <div className="flex items-center justify-center gap-2">
+            <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <p className="text-blue-800 text-sm md:text-base font-medium">
+              Та өмнө {dayjs(existingBooking.date).format("YYYY-MM-DD")} өдөр {existingBooking.startTime} цагт цаг авсан байна. Та цагаа өөрчлөх боломжтой.
+            </p>
+          </div>
+        </div>
+      )}
+      <div className={`md:border md:rounded-3xl flex flex-col sm:flex-col md:flex-row items-start md:h-[600px] md:border-[#000] md:border-opacity-10 overflow-hidden ${existingBooking ? 'mt-16' : ''}`}>
         <div className="py-8 md:px-7 px-5 md:bg-white bg-[#1D7AFF] w-full">
           <div>
             {!isMobile || selectedDate === null ? (
@@ -366,9 +394,14 @@ const ScheduleCalendar = ({
           className="w-full h-screen fixed bg-[#000] bg-opacity-40 flex items-center justify-center top-0 left-0"
         >
           <div className="bg-[#fff] rounded-xl p-6 max-w-[90%]">
-            <p className="text-[#1A1A1A] text-[20px] font-semibold mb-8">
+            <p className="text-[#1A1A1A] text-[20px] font-semibold mb-2">
               {data.companyName} ажлын ярилцлага{" "}
             </p>
+            {existingBooking && (
+              <p className="text-[#0069FF] text-sm mb-6">
+                Цаг солиход дарж баталгаажуулна уу
+              </p>
+            )}
             <div className="flex items-center gap-2 mb-2">
               <LuClock3 className="text-[#000] text-opacity-80" />
               <p className="text-[#000] text-opacity-80 text-sm">
@@ -405,7 +438,7 @@ const ScheduleCalendar = ({
                 disabled={load}
                 className="py-2 px-6 flex items-center gap-2 bg-[#0069FF] text-[#fff] rounded-lg "
               >
-                {load ? <div className="loader"></div> : "Баталгаажуулах"}
+                {load ? <div className="loader"></div> : (existingBooking ? "Цаг солих" : "Баталгаажуулах")}
               </button>
             </div>
           </div>

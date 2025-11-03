@@ -31,6 +31,8 @@ const Home = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [fullDate, setFullDate] = useState("");
   const [data, setData] = useState(null);
+  const [existingBooking, setExistingBooking] = useState(null);
+  const [bookingId, setBookingId] = useState(null);
 
   useEffect(() => {
     const fetchCalendarData = async () => {
@@ -105,6 +107,37 @@ const Home = () => {
     }
   }, [calendarToken, data]);
 
+  // Check for existing booking
+  useEffect(() => {
+    const checkExistingBooking = async () => {
+      if (calendarToken && data) {
+        try {
+          const response = await axios.get(
+            `https://oneplace-hr-326159028339.asia-southeast1.run.app/v1/calendar/meeting/by-token/${calendarToken}`
+          );
+
+          if (response.data) {
+            const booking = response.data;
+            setExistingBooking(booking);
+            setBookingId(booking.id);
+
+            // Pre-populate the booking details
+            setSelectedDate(booking.date);
+            setSelectedTime(booking.startTime);
+            setSelectedEndTime(booking.endTime);
+          }
+        } catch (err) {
+          // No existing booking found or error - this is fine, user can create new booking
+          console.log("No existing booking found or error fetching booking:", err);
+        }
+      }
+    };
+
+    if (data && calendarToken) {
+      checkExistingBooking();
+    }
+  }, [calendarToken, data]);
+
   if (data === null || isLoadingCandidate) {
     return <Loading />;
   }
@@ -141,6 +174,8 @@ const Home = () => {
           setFullDate={setFullDate}
           setPage={setPage}
           data={data}
+          existingBooking={existingBooking}
+          bookingId={bookingId}
         />
       )}
       {page === 3 && (
