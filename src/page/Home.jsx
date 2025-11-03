@@ -140,7 +140,14 @@ const Home = () => {
             return;
           }
 
-          console.log("✅ Found existing booking! Setting state...");
+          // IMPORTANT: Only show existing booking if it's for THIS calendar
+          if (booking.calendarId !== data.id) {
+            console.log("ℹ️ User has booking for different calendar (calendarId: {} vs current: {}). Not showing as existing booking.", booking.calendarId, data.id);
+            console.log("✨ User can create new booking for this calendar");
+            return;
+          }
+
+          console.log("✅ Found existing booking for THIS calendar! Setting state...");
 
           setExistingBooking(booking);
           setBookingId(booking.id);
